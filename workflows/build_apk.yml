@@ -1,0 +1,46 @@
+name: Build Android APK
+on:
+  workflow_dispatch:  # This allows us to click a button to start the build manually
+
+  jobs:
+    build:
+        runs-on: ubuntu-latest
+            steps:
+                  - uses: actions/checkout@v3
+
+                        - name: Set up Node.js
+                                uses: actions/setup-node@v3
+                                        with:
+                                                  node-version: '18'
+
+                                                        - name: Install Dependencies
+                                                                run: npm install
+
+                                                                      - name: Build Web Website
+                                                                              run: npm run build
+
+                                                                                    - name: Setup Java
+                                                                                            uses: actions/setup-java@v3
+                                                                                                    with:
+                                                                                                              distribution: 'zulu'
+                                                                                                                        java-version: '17'
+
+                                                                                                                              - name: Setup Android SDK
+                                                                                                                                      uses: android-actions/setup-android@v3
+
+                                                                                                                                            - name: Install Capacitor (The Magic Tool)
+                                                                                                                                                    run: |
+                                                                                                                                                              npm install @capacitor/core @capacitor/cli @capacitor/android
+                                                                                                                                                                        npx cap init BirthdayApp com.birthday.wish --web-dir=dist
+                                                                                                                                                                                  npx cap add android
+
+                                                                                                                                                                                        - name: Build APK
+                                                                                                                                                                                                run: |
+                                                                                                                                                                                                          cd android
+                                                                                                                                                                                                                    ./gradlew assembleDebug
+
+                                                                                                                                                                                                                          - name: Upload APK Artifact
+                                                                                                                                                                                                                                  uses: actions/upload-artifact@v4
+                                                                                                                                                                                                                                          with:
+                                                                                                                                                                                                                                                    name: birthday-wish-app
+                                                                                                                                                                                                                                                              path: android/app/build/outputs/apk/debug/app-debug.apk
